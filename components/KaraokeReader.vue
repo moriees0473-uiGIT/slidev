@@ -1,6 +1,5 @@
 <template>
   <div class="relative mt-8 font-serif pr-12">
-    
     <button
       :disabled="!audioOnly && !isReady"
       @click="playKaraoke"
@@ -37,30 +36,12 @@
 import { ref, onMounted } from 'vue'
 
 const props = defineProps({
-  text: {
-    type: String,
-    required: true
-  },
-  audioOnly: {
-    type: Boolean,
-    default: false
-  },
-  speed: {
-    type: Number,
-    default: 1.0
-  },
-  gender: {
-    type: String,
-    default: 'female'
-  },
-  pitch: {
-    type: Number,
-    default: 1.2 
-  },
-  ignoreMinor: {
-    type: Boolean,
-    default: true 
-  }
+  text: { type: String, required: true },
+  audioOnly: { type: Boolean, default: false },
+  speed: { type: Number, default: 1.0 },
+  gender: { type: String, default: 'female' },
+  pitch: { type: Number, default: 1.2 },
+  ignoreMinor: { type: Boolean, default: true }
 })
 
 const tokens = ref([])
@@ -77,15 +58,23 @@ onMounted(() => {
     initTokenizer()
   } else {
     const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js'
+    script.src = 'https://unpkg.com/kuromoji@0.1.2/build/kuromoji.js'
     script.onload = () => initTokenizer()
     document.head.appendChild(script)
   }
 })
 
 function initTokenizer() {
-  window.kuromoji.builder({ dicPath: 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict' }).build((err, tokenizer) => {
-    if (err) return console.error(err)
+  // 【最重要】jsdelivr が 404 になるため、unpkg.com の辞書パスに変更しました
+  const DIC_URL = 'https://unpkg.com/kuromoji@0.1.2/dict/'
+
+  window.kuromoji.builder({ dicPath: DIC_URL }).build((err, tokenizer) => {
+    if (err) {
+      console.error("辞書読み込み失敗:", err)
+      // Docker環境で読み込みが終わらないのを防ぐため、エラー時もボタンは押せるようにする
+      isReady.value = true 
+      return
+    }
 
     const parsedTokens = tokenizer.tokenize(props.text)
     let currentIndex = 0
@@ -110,7 +99,6 @@ function playKaraoke() {
 
   const msg = new SpeechSynthesisUtterance(props.text)
   msg.lang = 'ja-JP'
-  
   msg.rate = props.speed
   msg.pitch = props.pitch
 
@@ -135,29 +123,19 @@ function playKaraoke() {
       const targetIndex = tokens.value.findIndex(t => event.charIndex >= t.startIndex && event.charIndex < t.endIndex)
       if (targetIndex !== -1) activeTokenIndex.value = targetIndex
     }
-    msg.onend = () => {
-      activeTokenIndex.value = tokens.value.length
-    }
+    msg.onend = () => { activeTokenIndex.value = tokens.value.length }
   }
-
   speechSynthesis.speak(msg)
 }
 
 function getHighlightColor(pos, index, activeIndex) {
   if (index > activeIndex) return 'bg-transparent'
-
-  if (props.ignoreMinor && (pos === '助詞' || pos === '助動詞' || pos === '記号')) {
-    return 'bg-transparent'
-  }
-
+  if (props.ignoreMinor && (pos === '助詞' || pos === '助動詞' || pos === '記号')) return 'bg-transparent'
   if (pos === '名詞') return 'bg-blue-300'
   if (pos === '動詞') return 'bg-green-300'
   if (pos === '形容詞') return 'bg-purple-300'
-  
   if (pos === '助詞' || pos === '助動詞') return 'bg-yellow-300'
   if (pos === '記号') return 'bg-gray-300'
-  
   return 'bg-pink-300'
 }
 </script>
-
