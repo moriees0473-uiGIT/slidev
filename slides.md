@@ -2,6 +2,7 @@
 theme: seriph
 background: https://cover.sli.dev
 class: text-center
+transition: none
 ---
 
 # Javaプログラミング講座
