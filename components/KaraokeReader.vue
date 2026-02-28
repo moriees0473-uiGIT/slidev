@@ -84,10 +84,16 @@ onMounted(() => {
 })
 
 function initTokenizer() {
-  window.kuromoji.builder({ dicPath: 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict' }).build((err, tokenizer) => {
-    if (err) return console.error(err)
-
-    const parsedTokens = tokenizer.tokenize(props.text)
+  // 参照先を自サーバーのパス（/dict/）に変更
+  // Static Siteの場合、ドメイン直下のpublic/dictを探しに行きます
+  window.kuromoji.builder({ dicPath: "/dict/" }).build((err, tokenizer) => {
+    if (err) {
+      console.error("Kuromoji初期化エラー:", err);
+      // エラー時でもボタンだけは使えるようにしておく
+      isReady.value = true; 
+      return;
+    }
+    const parsedTokens = tokenizer.tokenize(props.text);
     let currentIndex = 0
 
     tokens.value = parsedTokens.map(t => {
