@@ -2,6 +2,7 @@
 theme: seriph
 background: https://cover.sli.dev
 class: text-center
+transition: none
 ---
 
 # Javaプログラミング講座
@@ -71,39 +72,7 @@ System.out.println(age);
 # まとめ（逆に落ち着いた低い声にしたい場合）
 <KaraokeReader text="落ち着いた声にします。ピッチを0.8に下げました。" :pitch="0.8" />
 
----
 
-# 便利な共通モジュールのテスト
-
-<CodeTabs tab1="Main.java" tab2="コンソール">
-<template #content1>
-
-```java
-public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello, Slidev!");
-    }
-}
-```
-
-</template>
-<template #content2>
-
-```text
-> java Main
-Hello, Slidev!
-```
-
-</template>
-</CodeTabs>
-
-<PointBox type="hint" title="便利なショートカット">
-  EclipseやIntelliJでは、`sout` と打ってTabキーを押すだけで `System.out.println()` が入力できます！
-</PointBox>
-
-<PointBox type="danger" title="よくあるエラー">
-  行の最後のセミコロン（`;`）を忘れるとコンパイルエラーになります。必ず確認しましょう。
-</PointBox>
 
 ---
 
