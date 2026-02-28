@@ -53,27 +53,52 @@ System.out.println(age);
 # まとめ：女性の声・早口
 <KaraokeReader text="復習になりますが、右のものを左に入れるのがルールです。" :speed="1.5" />
 
----
-
 # まとめ：読み上げのみ（ハイライト処理なし）
 <KaraokeReader text="ハイライト処理を行わないため、スライドの読み込みが非常に高速になります。" audioOnly />
-
----
 
 # まとめ（標準：少し若い女性の声・助詞スキップ）
 <KaraokeReader text="変数は、箱のようなものです。右のものを左に入れるのがルールです。" />
 
----
-
 # まとめ（さらに若く明るい声にしたい場合）
 <KaraokeReader text="もっと高くて若い声にします。ピッチを1.5に設定しました。" :pitch="1.5" />
-
----
 
 # まとめ（逆に落ち着いた低い声にしたい場合）
 <KaraokeReader text="落ち着いた声にします。ピッチを0.8に下げました。" :pitch="0.8" />
 
 
+---
+
+# 便利な共通モジュールのテスト
+
+<CodeTabs tab1="Main.java" tab2="コンソール">
+<template #content1>
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, Slidev!");
+    }
+}
+```
+
+</template>
+<template #content2>
+
+```text
+> java Main
+Hello, Slidev!
+```
+
+</template>
+</CodeTabs>
+
+<PointBox type="hint" title="便利なショートカット">
+  EclipseやIntelliJでは、`sout` と打ってTabキーを押すだけで `System.out.println()` が入力できます！
+</PointBox>
+
+<PointBox type="danger" title="よくあるエラー">
+  行の最後のセミコロン（`;`）を忘れるとコンパイルエラーになります。必ず確認しましょう。
+</PointBox>
 
 ---
 
