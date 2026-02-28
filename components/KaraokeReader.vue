@@ -10,17 +10,20 @@
       </svg>
     </button>
 
-    <div v-if="audioOnly" class="text-3xl leading-loose text-gray-800">
-      {{ text }}
-    </div>
-
-    <div v-else class="text-3xl leading-loose">
-      <span
-        v-for="(token, index) in tokens"
-        :key="index"
-        :class="index === activeTokenIndex ? 'bg-yellow-300 text-black shadow-sm' : 'bg-transparent'"
-        class="text-gray-800 transition-all duration-150 rounded px-1 mx-px inline-block"
-      >{{ token.word }}</span>
+    <div class="text-3xl leading-loose text-gray-800">
+      <template v-if="tokens.length === 0">
+        {{ text }}
+      </template>
+      <template v-else>
+        <span
+          v-for="(token, index) in tokens"
+          :key="index"
+          :class="[
+            'transition-all duration-150 rounded px-1 mx-px inline-block',
+            index === activeTokenIndex ? 'bg-yellow-300 text-black shadow-sm scale-105' : 'bg-transparent'
+          ]"
+        >{{ token.word }}</span>
+      </template>
     </div>
   </div>
 </template>
@@ -38,18 +41,24 @@ const props = defineProps({
 const tokens = ref([])
 const activeTokenIndex = ref(-1)
 
-// BudouX を使ってテキストを分割する
-async function initTokenizer() {
-  // BudouX の軽量スクリプトを読み込む
-  if (!window.BudouX) {
-    await new Promise((resolve) => {
-      const script = document.createElement('script')
-      script.src = 'https://unpkg.com/budoux/bundle/budoux-ja.min.js'
-      script.onload = resolve
-      document.head.appendChild(script)
-    })
+// 解析処理：外部スクリプトを読み込み、準備ができたら分割する
+function initBudouX() {
+  if (window.BudouX) {
+    parseText()
+    return
   }
 
+  const script = document.createElement('script')
+  script.src = 'https://unpkg.com/budoux/bundle/budoux-ja.min.js'
+  script.onload = () => {
+    parseText()
+  }
+  document.head.appendChild(script)
+}
+
+function parseText() {
+  if (!window.BudouX) return
+  
   const parser = window.BudouX.loadDefaultJapaneseParser()
   const segments = parser.parse(props.text)
   
@@ -66,12 +75,13 @@ async function initTokenizer() {
 }
 
 onMounted(() => {
-  initTokenizer()
+  initBudouX()
 })
 
+// テキストが切り替わった時に再解析
 watch(() => props.text, () => {
-  initTokenizer()
-})
+  parseText()
+}, { immediate: true })
 
 function playKaraoke() {
   speechSynthesis.cancel()
@@ -87,12 +97,18 @@ function playKaraoke() {
   let voice = jaVoices.find(v => props.gender === 'male' ? /Keita|Ichiro|Male/i.test(v.name) : /Nanami|Google|Female/i.test(v.name))
   if (voice) msg.voice = voice
 
-  if (!props.audioOnly) {
+  // ハイライト制御（tokensがある場合のみ実行）
+  if (tokens.value.length > 0) {
     msg.onboundary = (event) => {
-      const targetIndex = tokens.value.findIndex(t => event.charIndex >= t.startIndex && event.charIndex < t.endIndex)
-      if (targetIndex !== -1) activeTokenIndex.value = targetIndex
+      const charIndex = event.charIndex
+      const targetIndex = tokens.value.findIndex(t => charIndex >= t.startIndex && charIndex < t.endIndex)
+      if (targetIndex !== -1) {
+        activeTokenIndex.value = targetIndex
+      }
     }
-    msg.onend = () => { activeTokenIndex.value = -1 }
+    msg.onend = () => {
+      activeTokenIndex.value = -1
+    }
   }
 
   speechSynthesis.speak(msg)
